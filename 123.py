@@ -56,9 +56,8 @@ if __name__ == '__main__':
     optimizer = optim.SGD(net.parameters(), lr=0.001)
     epoch = 100
 
-    for _epoch in range(epoch):
-        net.train()
-        loss_list, batch_list = [], []
+    loss_list, batch_list = [], []
+    for _epoch in range(epoch):  
         for i, (images, labels) in enumerate(data_train_loader):
             optimizer.zero_grad()
             output = net(images)

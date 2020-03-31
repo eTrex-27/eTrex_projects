@@ -56,6 +56,8 @@ if __name__ == '__main__':
     optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
     epoch = 100
 
+    n = 0
+    iters, losses = [], []
     loss_list, batch_list = [], []
     for _epoch in range(epoch):  
         for i, (images, labels) in enumerate(data_train_loader):

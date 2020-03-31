@@ -38,7 +38,6 @@ class Net(nn.Module):
         y = self.fc1(y)
         y = self.relu4(y)
         y = self.fc2(y)
-        y = self.relu5(y)
         return y
 
 net = Net()
@@ -53,7 +52,7 @@ if __name__ == '__main__':
     data_train_loader = DataLoader(data_train, batch_size=batch_size, shuffle=True)
     data_test_loader = DataLoader(data_test, batch_size=batch_size)
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.001)
+    optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
     epoch = 100
 
     loss_list, batch_list = [], []
@@ -67,6 +66,12 @@ if __name__ == '__main__':
 
             loss.backward()
             optimizer.step()
+            
+            loss.backward()
+            optimizer.step()
+            iters.append(n)
+            losses.append(loss / batch_size)
+            n += 1
 
         total_correct = 0
         avg_loss = 0.0
@@ -77,3 +82,9 @@ if __name__ == '__main__':
             total_correct += pred.eq(labels.view_as(pred)).sum()
             avg_loss /= len(data_test)
         print('Test Avg. Loss: %f, Accuracy: %f' % (avg_loss.detach().cpu().item(), float(total_correct) / len(data_test)))
+        
+    plt.title("Training Curve")
+    plt.plot(iters, losses, label="Train")
+    plt.xlabel("Iterations")
+    plt.ylabel("Loss")
+    plt.show()

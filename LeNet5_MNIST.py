@@ -8,6 +8,7 @@ import numpy as np
 from torchvision.datasets.mnist import MNIST
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
 
 class Net(nn.Module):
     def __init__(self):

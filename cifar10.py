@@ -59,8 +59,6 @@ if __name__ == '__main__':
 
     classes = ('plane', 'car', 'bird', 'cat', 'dear', 'dog', 'frog', 'horse', 'ship', 'truck')
     iters, losses = [], []
-    loss_history = []
-    correct_history = []
     n = 0
     for _epoch in range(epochs):
         loss = 0.0
@@ -88,19 +86,9 @@ if __name__ == '__main__':
             total_correct += pred.eq(labels.view_as(pred)).sum()
             avg_loss /= len(data_test)
         print('Test Avg. Loss: %f, Accuracy: %f' % (avg_loss.detach().cpu().item(), float(total_correct) / len(data_test)))
-        # epoch_loss = loss / len(data_train_loader)
-        # epoch_acc = correct / len(data_train_loader)
-        # loss_history.append(epoch_loss)
-        # correct_history.append(epoch_acc)
 
     plt.title("Training Curve")
     plt.plot(iters, losses, label="Train")
     plt.xlabel("Iterations")
     plt.ylabel("Loss")
     plt.show()
-    # plt.plot(loss_history, label='Training Loss')
-    # plt.legend()
-    # plt.show()
-    # plt.plot(correct_history, label='Training accuracy')
-    # plt.legend()
-    # plt.show()

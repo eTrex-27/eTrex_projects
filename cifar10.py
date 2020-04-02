@@ -35,9 +35,11 @@ class Net(nn.Module):
         self.conv6 = nn.Conv2d(160, 160, 3, padding=1)
         self.bn6 = nn.BatchNorm2d(160)
         self.relu6 = nn.ReLU()
+        self.dropout1 = nn.Dropout(0.5)
         self.pool3 = nn.MaxPool2d(2)
         self.fc1 = nn.Linear(4 * 4 * 160, 4096)
         self.relu7 = nn.ReLU()
+        
         self.fc2 = nn.Linear(4096, 1000)
         self.relu8 = nn.ReLU()
         self.fc3 = nn.Linear(1000, 10)
@@ -64,10 +66,12 @@ class Net(nn.Module):
         y = self.conv6(y)
         y = self.bn6(y)
         y = self.relu6(y)
+        y = self.dropout1(y)
         y = self.pool3(y)
         y = y.view(y.shape[0], -1)
         y = self.fc1(y)
         y = self.relu7(y)
+        
         y = self.fc2(y)
         y = self.relu8(y)
         y = self.fc3(y)
@@ -77,12 +81,16 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 net = Net().to(device)
 print(net)
 
+weight_d = [1e-3, 1e-4, 1e-5, 1e-7]
+weight_decay = weight_d[0]
+
 loss_fn = nn.CrossEntropyLoss()
-optimizer = optim.Adam(net.parameters(), lr=0.0001, weight_decay=1e-5)
+optimizer = optim.Adam(net.parameters(), lr=0.0001, weight_decay=weight_decay)
 epochs = 100
 
 tfs = transforms.Compose([transforms.RandomCrop(32, padding=4),
                           transforms.RandomHorizontalFlip(),
+                          transforms.RandomRotation(50, resample=Image.BILINEAR),
                           transforms.ToTensor(),
                           transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),])
 
@@ -102,6 +110,13 @@ if __name__ == '__main__':
     iters, iters2, losses_train, accuracies_train, losses_test, accuracies_test = [], [], [], [], [], []
     n, k = 0, 0
     for _epoch in range(epochs):
+        print(weight_decay)
+        if _epoch <= 30:
+            weight_decay = weight_d[1]
+        elif _epoch <= 60:
+            weight_decay = weight_d[2]
+        elif _epoch <= 80:
+            weight_decay = weight_d[3]
         train_loss = 0
         correct = 0
         total = 0
@@ -122,7 +137,6 @@ if __name__ == '__main__':
             total += labels.size(0)
             correct += predicted.eq(labels).sum().item()
             accuracies_train.append(100. * correct / total)
-
         print('Epoch: %d | Loss_train: %.3f | Acc_train: %.3f%% (%d/%d)' % (_epoch, train_loss / len(data_train_loader), 100. * correct / total, correct, total))
 
         test_loss = 0

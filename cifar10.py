@@ -9,7 +9,8 @@ from torchvision import datasets
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
-
+import PIL
+from PIL import Image
 
 class Net(nn.Module):
     def __init__(self):
@@ -77,15 +78,20 @@ net = Net().to(device)
 print(net)
 
 loss_fn = nn.CrossEntropyLoss()
-optimizer = optim.Adam(net.parameters(), lr=0.0001)
-epochs = 20
+optimizer = optim.Adam(net.parameters(), lr=0.0001, weight_decay=1e-5)
+epochs = 100
+
+tfs = transforms.Compose([transforms.RandomCrop(32, padding=4),
+                          transforms.RandomHorizontalFlip(),
+                          transforms.ToTensor(),
+                          transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),])
 
 transform_train = transforms.Compose([transforms.RandomCrop(32, padding=4), transforms.RandomHorizontalFlip(), transforms.ToTensor(), transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),])
-transform_test = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),])
+transform_test = transforms.Compose([transforms.ToTensor()])
 
 if __name__ == '__main__':
     batch_size = 256
-    data_train = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+    data_train = datasets.CIFAR10(root='./data', train=True, download=True, transform=tfs)
     data_test = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
 
     data_train_loader = DataLoader(data_train, batch_size=batch_size, shuffle=True)
@@ -116,6 +122,7 @@ if __name__ == '__main__':
             total += labels.size(0)
             correct += predicted.eq(labels).sum().item()
             accuracies_train.append(100. * correct / total)
+
         print('Epoch: %d | Loss_train: %.3f | Acc_train: %.3f%% (%d/%d)' % (_epoch, train_loss / len(data_train_loader), 100. * correct / total, correct, total))
 
         test_loss = 0
@@ -136,7 +143,7 @@ if __name__ == '__main__':
                 total += labels.size(0)
                 correct += predicted.eq(labels).sum().item()
                 accuracies_test.append(100. * correct / total)
-            print('Epoch: %d | Loss_test: %.3f | Acc_test: %.3f%% (%d/%d)' % (_epoch, test_loss / (i + 1), 100. * correct / total, correct, total))
+            print('Epoch: %d | Loss_test: %.3f | Acc_test: %.3f%% (%d/%d)' % (_epoch, test_loss / len(data_test_loader), 100. * correct / total, correct, total))
 
     plt.plot(iters, losses_train, label='Training Loss')
     plt.legend()
